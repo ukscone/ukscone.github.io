@@ -15,11 +15,6 @@
   <link rel="stylesheet" href="lib/codemirror.css">
   
   <style>
-    textarea,
-    [contenteditable] {
-      caret-color: red;
-    }
-
     textarea {
       padding: 12px 20px;
       box-sizing: border-box;
@@ -93,8 +88,11 @@
     <button id='break'>Break</button>
     <button id='enterPasteMode'>Enter Paste Mode</button>
     <button id='leavePasteMode'>Leave Paste Mode</button>
-    <button id='enterRawREPL'>Enter Raw REPL</button>
-    <button id='leaveRawREPL'>Leave Raw REPL</button>
+  <!--  <button id='enterRawREPL'>Enter Raw REPL</button>
+    <button id='leaveRawREPL'>Leave Raw REPL</button> -->
+    <br/>
+    <input type="file" id="fileElem" accept="*.py, *.txt" style="display:none"/>
+    <button id='getFile'>Load File</button>
     <br />
     <br />
     <label>Input</label>

@@ -7,20 +7,39 @@ let outputStream;
 
 var inRawRepl = false;
 var controlChar = false;
+var pasteMode = false;
 
 const connectButton = document.getElementById('connectButton');
 const disconnectButton = document.getElementById('disconnectButton')
+
 const softRebootButton = document.getElementById('softReboot')
 const breakButton = document.getElementById('break')
 const leavePasteModeButton = document.getElementById('leavePasteMode')
 const enterPasteModeButton = document.getElementById('enterPasteMode')
-const enterRawREPLButton = document.getElementById('enterRawREPL')
-const leaveRawREPLButton = document.getElementById('leaveRawREPL')
+//const enterRawREPLButton = document.getElementById('enterRawREPL')
+//const leaveRawREPLButton = document.getElementById('leaveRawREPL')
+
 const runButton = document.getElementById('run')
 const sendButton = document.getElementById('send')
 const clearButton = document.getElementById('clear')
 
+const fileSelect = document.getElementById("getFile"),
+  fileElem = document.getElementById("fileElem");
 
+fileSelect.addEventListener("click", function (e) {
+  if (fileElem) {
+    fileElem.click();
+  }
+}, false);
+
+fileElem.addEventListener("change", handleFiles, false);
+function handleFiles() {
+  const fileList = this.files[0]; /* now you can work with the file list */
+  console.log(fileList);
+  var reader = new FileReader();
+  reader.readAsText(fileList);
+  reader.onload = function(){ editor.setValue(reader.result); }
+}
 
 connectButton.addEventListener('click', e => {
     clickConnect();
@@ -82,7 +101,7 @@ clearButton.addEventListener('click', e => {
 })
 
 
-
+/*
 enterRawREPLButton.addEventListener('click', e => {
 
     console.log("entering Raw REPL");
@@ -96,6 +115,7 @@ leaveRawREPLButton.addEventListener('click', e => {
     writeToStream('\04\02')
 
 })
+*/
 
 
 //Connect to the Serial Port
