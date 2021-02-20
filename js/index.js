@@ -8,6 +8,7 @@ let outputStream;
 var inRawRepl = false;
 var controlChar = false;
 var pasteMode = false;
+var loading = false;
 
 const connectButton = document.getElementById('connectButton');
 const disconnectButton = document.getElementById('disconnectButton')
@@ -22,25 +23,41 @@ const enterPasteModeButton = document.getElementById('enterPasteMode')
 const runButton = document.getElementById('run')
 const sendButton = document.getElementById('send')
 const clearButton = document.getElementById('clear')
-
+const fileNamePrompt = document.getElementById('getFileFromPico')
 const fileSelect = document.getElementById("getFile"),
-  fileElem = document.getElementById("fileElem");
+    fileElem = document.getElementById("fileElem");
 
 fileSelect.addEventListener("click", function (e) {
-  if (fileElem) {
-    fileElem.click();
-  }
+    if (fileElem) {
+        fileElem.click();
+    }
 }, false);
 
 fileElem.addEventListener("change", handleFiles, false);
 function handleFiles() {
-  const fileList = this.files[0]; /* now you can work with the file list */
-  console.log(fileList);
-  var reader = new FileReader();
-  reader.readAsText(fileList);
-  reader.onload = function(){ editor.setValue(reader.result); }
+    const fileList = this.files[0]; /* now you can work with the file list */
+    console.log(fileList);
+    var reader = new FileReader();
+    reader.readAsText(fileList);
+    reader.onload = function () { editor.setValue(reader.result); }
 }
 
+function fnPrompt() {
+    var txt;
+    var fName = prompt("Please enter filename on pico:", "");
+    if (fName == null || fName == "") {
+        txt = "User cancelled the prompt.";
+    } else {
+        txt = "filename:- " + fName;
+    }
+    loading = true;
+    writeToStream("f=open(\"" + fName + "\");z=f.read();f.close();print(z);");
+    console.log(txt);
+}
+
+fileNamePrompt.addEventListener("click", e => {
+    fnPrompt();
+});
 connectButton.addEventListener('click', e => {
     clickConnect();
 });
@@ -68,7 +85,7 @@ enterPasteModeButton.addEventListener('click', e => {
 })
 
 runButton.addEventListener('click', e => {
-    it=editor.getValue()
+    it = editor.getValue()
 
     console.log(it);
     ait = it.split('\n');
@@ -82,7 +99,7 @@ runButton.addEventListener('click', e => {
 
 
 sendButton.addEventListener('click', e => {
-    it=editor.getValue()
+    it = editor.getValue()
 
     //var inputText = document.getElementById('multiLineInput')
     //it = inputText.value
@@ -97,7 +114,6 @@ sendButton.addEventListener('click', e => {
 
 clearButton.addEventListener('click', e => {
     editor.getDoc().setValue('');
-    //document.getElementById('multiLineInput').value = "";
 })
 
 
@@ -163,7 +179,7 @@ const connect = async () => {
 const disconnect = async () => {
     if (reader) {
         await reader.cancel();
-        await inputDone.catch(() => {});
+        await inputDone.catch(() => { });
         reader = null;
         inputDone = null;
     }
@@ -210,6 +226,30 @@ const readLoop = async () => {
     }
 }
 
+function insertString(editor, str) {
+
+    var selection = editor.getSelection();
+
+    if (selection.length > 0) {
+        editor.replaceSelection(str);
+    }
+    else {
+
+        var doc = editor.getDoc();
+        var cursor = doc.getCursor();
+
+        var pos = {
+            line: cursor.line,
+            ch: cursor.ch
+        }
+
+        doc.replaceRange(str, pos);
+
+    }
+
+}
+
+var curString = "";
 const readOne = async () => {
 
     for (let i = 0; i < 20; i++) {
@@ -219,8 +259,32 @@ const readOne = async () => {
         } = await reader.read();
         if (value) {
             console.log(value);
-            document.getElementById('multiLineOutput').textContent += value;
-            document.getElementById("multiLineOutput").scrollTop = document.getElementById("multiLineOutput").scrollHeight
+            if (loading == false) {
+                console.log("normal");
+                document.getElementById('multiLineOutput').textContent += value;
+                document.getElementById("multiLineOutput").scrollTop = document.getElementById("multiLineOutput").scrollHeight
+            } else {
+                if (value.includes(">>>")) {
+                    console.log("prompt");
+
+                    val1 = value.replace(">>>", '');
+                    curString += val1;
+                    const lines = curString.split('\n');
+                    lines.shift();
+                    const cleancode = lines.join('\n');
+                    insertString(editor, cleancode);
+                    loading = false;
+                } else {
+
+                    //val1 = value.replace(">>>",'');
+                    //curText = editor.getValue();
+                    //val2 = val1.replaceAll("\\n", '\n');
+                    //editor.replaceRange(val2, CodeMirror.Pos(editor.lastLine()));
+                    //insertString(editor,value);
+                    curString += value;
+                    console.log("value " + value);
+                }
+            }
         }
     }
 }
